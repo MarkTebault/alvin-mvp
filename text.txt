@@ -1,0 +1,156 @@
+
+
+/* =============================================== */
+/* ========== 5. Services ======================= */
+// src/services/elders.ts
+import { supabase } from '../supabaseClient';
+import type { Elder } from '../types';
+
+export async function fetchElders(): Promise<Elder[]> {
+  const { data, error } = await supabase.from<Elder>('elders').select('*');
+  if (error) throw error;
+  return data;
+}
+
+export async function addElder(name: string): Promise<Elder[]> {
+  const { data, error } = await supabase.from<Elder>('elders').insert([{ name }]).select();
+  if (error) throw error;
+  return data;
+}
+
+/* =============================================== */
+// src/services/tasks.ts
+import { supabase } from '../supabaseClient';
+import type { Task } from '../types';
+
+export async function fetchTasks(): Promise<Task[]> {
+  const { data, error } = await supabase.from<Task>('tasks').select('*');
+  if (error) throw error;
+  return data;
+}
+
+export async function addTask(task: Omit<Task, 'id'>): Promise<Task[]> {
+  const { data, error } = await supabase.from<Task>('tasks').insert([task]).select();
+  if (error) throw error;
+  return data;
+}
+
+/* =============================================== */
+/* ========== 6. Main App / Routing ============= */
+// src/main.tsx
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import App from './App';
+import Dashboard from './pages/Dashboard';
+import Elders from './pages/Elders';
+import Tasks from './pages/Tasks';
+
+ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <Routes>
+        <Route path='/' element={<App />}>
+          <Route index element={<Navigate to='/elders' replace />} />
+          <Route path='dashboard' element={<Dashboard />} />
+          <Route path='elders' element={<Elders />} />
+          <Route path='tasks' element={<Tasks />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  </React.StrictMode>
+);
+
+/* =============================================== */
+/* ========== 7. App Layout ===================== */
+// src/App.tsx
+import { Outlet, Link } from 'react-router-dom';
+
+export default function App() {
+  return (
+    <div>
+      <header>
+        <h1>Elder Reminder Web</h1>
+        <nav>
+          <Link to='/dashboard'>Dashboard</Link> | <Link to='/elders'>Elders</Link> | <Link to='/tasks'>Tasks</Link>
+        </nav>
+      </header>
+      <main>
+        <Outlet />
+      </main>
+    </div>
+  );
+}
+
+/* =============================================== */
+/* ========== 8. Pages ========================== */
+// src/pages/Dashboard.tsx
+export default function Dashboard() {
+  return <div><h2>Dashboard</h2><p>Overview of tasks & reminders</p></div>;
+}
+
+// src/pages/Elders.tsx
+import React, { useEffect, useState } from 'react';
+import { fetchElders, addElder } from '../services/elders';
+import type { Elder } from '../types';
+
+export default function Elders() {
+  const [elders, setElders] = useState<Elder[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [newName, setNewName] = useState<string>('');
+
+  useEffect(() => {
+    fetchElders().then(setElders).finally(() => setLoading(false));
+  }, []);
+
+  const handleAdd = async () => {
+    if (!newName) return;
+    const data = await addElder(newName);
+    setElders([...elders, ...data]);
+    setNewName('');
+  };
+
+  if (loading) return <p>Loading...</p>;
+
+  return (
+    <div>
+      <h2>Elders</h2>
+      <ul>{elders.map(e => <li key={e.id}>{e.name}</li>)}</ul>
+      <input type='text' placeholder='New elder name' value={newName} onChange={e => setNewName(e.target.value)} />
+      <button onClick={handleAdd}>Add Elder</button>
+    </div>
+  );
+}
+
+// src/pages/Tasks.tsx
+import React, { useEffect, useState } from 'react';
+import { fetchTasks, addTask } from '../services/tasks';
+import type { Task } from '../types';
+
+export default function Tasks() {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [taskName, setTaskName] = useState<string>('');
+
+  useEffect(() => {
+    fetchTasks().then(setTasks).finally(() => setLoading(false));
+  }, []);
+
+  const handleAdd = async () => {
+    if (!taskName) return;
+    const data = await addTask({ name: taskName, elder_id: 1 }); // temporary: assign to elder_id 1
+    setTasks([...tasks, ...data]);
+    setTaskName('');
+  };
+
+  if (loading) return <p>Loading...</p>;
+
+  return (
+    <div>
+      <h2>Tasks</h2>
+      <ul>{tasks.map(t => <li key={t.id}>{t.name}</li>)}</ul>
+      <input type='text' placeholder='New task name' value={taskName} onChange={e => setTaskName(e.target.value)} />
+      <button onClick={handleAdd}>Add Task</button>
+    </div>
+  );
+}
