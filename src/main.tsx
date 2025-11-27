@@ -5,6 +5,7 @@ import App from './App';
 import Dashboard from './pages/Dashboard';
 import Elders from './pages/Elders';
 import Tasks from './pages/Tasks';
+import './index.css';  // Add this line!
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
