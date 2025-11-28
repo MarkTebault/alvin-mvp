@@ -1,12 +1,37 @@
 import { useEffect, useState } from 'react';
 import { fetchUsers, addUser, updateUser, deleteUser } from '../services/users';
 import type { User } from '../types';
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Paper,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+  MenuItem,
+  CircularProgress,
+} from '@mui/material';
+import { Add, Edit, Delete } from '@mui/icons-material';
 
 export default function Users() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<number | null>(null);
-  const [showForm, setShowForm] = useState(false);
+  const [showDialog, setShowDialog] = useState(false);
   
   const [formData, setFormData] = useState({
     first_name: '',
@@ -34,8 +59,7 @@ export default function Users() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     try {
       if (editing) {
         await updateUser(editing, formData);
@@ -43,7 +67,7 @@ export default function Users() {
         await addUser(formData);
       }
       await loadUsers();
-      resetForm();
+      handleCloseDialog();
     } catch (error) {
       console.error('Error saving user:', error);
     }
@@ -60,7 +84,7 @@ export default function Users() {
       role: user.role
     });
     setEditing(user.id);
-    setShowForm(true);
+    setShowDialog(true);
   };
 
   const handleDelete = async (id: number) => {
@@ -74,7 +98,7 @@ export default function Users() {
     }
   };
 
-  const resetForm = () => {
+  const handleCloseDialog = () => {
     setFormData({
       first_name: '',
       last_name: '',
@@ -85,162 +109,148 @@ export default function Users() {
       role: 'CAREGIVER'
     });
     setEditing(null);
-    setShowForm(false);
+    setShowDialog(false);
   };
 
-  if (loading) return <p>Loading users...</p>;
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h2>Users</h2>
-        <button onClick={() => setShowForm(!showForm)}>
-          {showForm ? 'Cancel' : '+ Add User'}
-        </button>
-      </div>
+    <Box sx={{ width: '100%' }}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography variant="h4" component="h1">
+          Users
+        </Typography>
+        <Button
+          variant="contained"
+          startIcon={<Add />}
+          onClick={() => setShowDialog(true)}
+        >
+          Add User
+        </Button>
+      </Box>
 
-      {showForm && (
-        <form onSubmit={handleSubmit} style={{ 
-          background: '#1a1a1a', 
-          padding: '20px', 
-          borderRadius: '8px', 
-          marginBottom: '20px' 
-        }}>
-          <h3>{editing ? 'Edit User' : 'New User'}</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-            <div>
-              <label style={{ display: 'block', marginBottom: '5px' }}>First Name *</label>
-              <input
-                type="text"
-                value={formData.first_name}
-                onChange={e => setFormData({ ...formData, first_name: e.target.value })}
-                required
-                style={{ width: '100%', padding: '8px' }}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '5px' }}>Last Name *</label>
-              <input
-                type="text"
-                value={formData.last_name}
-                onChange={e => setFormData({ ...formData, last_name: e.target.value })}
-                required
-                style={{ width: '100%', padding: '8px' }}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '5px' }}>Preferred Name</label>
-              <input
-                type="text"
-                value={formData.preferred_name}
-                onChange={e => setFormData({ ...formData, preferred_name: e.target.value })}
-                style={{ width: '100%', padding: '8px' }}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '5px' }}>Email *</label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={e => setFormData({ ...formData, email: e.target.value })}
-                required
-                style={{ width: '100%', padding: '8px' }}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '5px' }}>Phone *</label>
-              <input
-                type="tel"
-                value={formData.phone}
-                onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                required
-                style={{ width: '100%', padding: '8px' }}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '5px' }}>Role *</label>
-              <select
-                value={formData.role}
-                onChange={e => setFormData({ ...formData, role: e.target.value })}
-                required
-                style={{ width: '100%', padding: '8px' }}
-              >
-                <option value="CAREGIVER">Caregiver</option>
-                <option value="ADMIN">Admin</option>
-              </select>
-            </div>
-            <div style={{ gridColumn: '1 / -1' }}>
-              <label style={{ display: 'block', marginBottom: '5px' }}>
-                Password {editing && '(leave blank to keep current)'}
-              </label>
-              <input
-                type="password"
-                value={formData.password}
-                onChange={e => setFormData({ ...formData, password: e.target.value })}
-                required={!editing}
-                style={{ width: '100%', padding: '8px' }}
-              />
-            </div>
-          </div>
-          <div style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
-            <button type="submit">
-              {editing ? 'Update User' : 'Create User'}
-            </button>
-            <button type="button" onClick={resetForm}>Cancel</button>
-          </div>
-        </form>
-      )}
-
-      <div style={{ background: '#1a1a1a', borderRadius: '8px', overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ background: '#2a2a2a' }}>
-              <th style={{ padding: '12px', textAlign: 'left' }}>Name</th>
-              <th style={{ padding: '12px', textAlign: 'left' }}>Email</th>
-              <th style={{ padding: '12px', textAlign: 'left' }}>Phone</th>
-              <th style={{ padding: '12px', textAlign: 'left' }}>Role</th>
-              <th style={{ padding: '12px', textAlign: 'left' }}>Status</th>
-              <th style={{ padding: '12px', textAlign: 'right' }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map(user => (
-              <tr key={user.id} style={{ borderTop: '1px solid #333' }}>
-                <td style={{ padding: '12px' }}>
+      <TableContainer component={Paper} sx={{ width: '100%' }}>
+        <Table sx={{ minWidth: 650 }}>
+          <TableHead>
+            <TableRow>
+              <TableCell>Name</TableCell>
+              <TableCell>Email</TableCell>
+              <TableCell>Phone</TableCell>
+              <TableCell>Role</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell align="right">Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {users.map((user) => (
+              <TableRow key={user.id}>
+                <TableCell>
                   {user.preferred_name || `${user.first_name} ${user.last_name}`}
-                </td>
-                <td style={{ padding: '12px' }}>{user.email}</td>
-                <td style={{ padding: '12px' }}>{user.phone}</td>
-                <td style={{ padding: '12px' }}>{user.role}</td>
-                <td style={{ padding: '12px' }}>
-                  <span style={{ 
-                    padding: '4px 8px', 
-                    borderRadius: '4px', 
-                    background: user.active ? '#1a4d1a' : '#4d1a1a',
-                    fontSize: '12px'
-                  }}>
-                    {user.active ? 'Active' : 'Inactive'}
-                  </span>
-                </td>
-                <td style={{ padding: '12px', textAlign: 'right' }}>
-                  <button 
-                    onClick={() => handleEdit(user)}
-                    style={{ marginRight: '8px', padding: '6px 12px' }}
-                  >
-                    Edit
-                  </button>
-                  <button 
-                    onClick={() => handleDelete(user.id)}
-                    style={{ padding: '6px 12px', background: '#4d1a1a' }}
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
+                </TableCell>
+                <TableCell>{user.email}</TableCell>
+                <TableCell>{user.phone}</TableCell>
+                <TableCell>{user.role}</TableCell>
+                <TableCell>
+                  <Chip
+                    label={user.active ? 'Active' : 'Inactive'}
+                    color={user.active ? 'success' : 'error'}
+                    size="small"
+                  />
+                </TableCell>
+                <TableCell align="right">
+                  <IconButton onClick={() => handleEdit(user)} color="primary">
+                    <Edit />
+                  </IconButton>
+                  <IconButton onClick={() => handleDelete(user.id)} color="error">
+                    <Delete />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      <Dialog open={showDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+        <DialogTitle>{editing ? 'Edit User' : 'New User'}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Stack direction="row" spacing={2}>
+              <TextField
+                fullWidth
+                label="First Name"
+                required
+                value={formData.first_name}
+                onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+              />
+              <TextField
+                fullWidth
+                label="Last Name"
+                required
+                value={formData.last_name}
+                onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+              />
+            </Stack>
+            <Stack direction="row" spacing={2}>
+              <TextField
+                fullWidth
+                label="Preferred Name"
+                value={formData.preferred_name}
+                onChange={(e) => setFormData({ ...formData, preferred_name: e.target.value })}
+              />
+              <TextField
+                fullWidth
+                label="Email"
+                type="email"
+                required
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              />
+            </Stack>
+            <Stack direction="row" spacing={2}>
+              <TextField
+                fullWidth
+                label="Phone"
+                type="tel"
+                required
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              />
+              <TextField
+                fullWidth
+                select
+                label="Role"
+                required
+                value={formData.role}
+                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+              >
+                <MenuItem value="CAREGIVER">Caregiver</MenuItem>
+                <MenuItem value="ADMIN">Admin</MenuItem>
+              </TextField>
+            </Stack>
+            <TextField
+              fullWidth
+              label={editing ? 'Password (leave blank to keep current)' : 'Password'}
+              type="password"
+              required={!editing}
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Cancel</Button>
+          <Button onClick={handleSubmit} variant="contained">
+            {editing ? 'Update' : 'Create'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 }
