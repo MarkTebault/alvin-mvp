@@ -21,6 +21,7 @@ import {
   People as PeopleIcon,
   Elderly as ElderlyIcon,
   Assignment as TasksIcon,
+  Help as HelpIcon,
   AccountCircle,
   Notifications,
   Menu as MenuIcon,
@@ -32,6 +33,7 @@ const menuItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
   { text: 'Users', icon: <PeopleIcon />, path: '/users' },
   { text: 'Elders', icon: <ElderlyIcon />, path: '/elders' },
+  { text: 'Help', icon: <HelpIcon />, path: '/help' },
 ];
 
 export default function App() {
@@ -91,7 +93,7 @@ export default function App() {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            Elder Reminder System
+            ALVIN - Elder Reminder System
           </Typography>
           
           <IconButton

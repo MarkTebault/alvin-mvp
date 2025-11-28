@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import Users from './pages/Users';
 import Elders from './pages/Elders';
 import Tasks from './pages/Tasks';
+import Help from './pages/Help';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
@@ -17,7 +18,8 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
           <Route path='dashboard' element={<Dashboard />} />
           <Route path='users' element={<Users />} />
           <Route path='elders' element={<Elders />} />
-          <Route path='tasks' element={<Tasks />} />
+          <Route path='elders/:elderId/tasks' element={<Tasks />} />
+          <Route path='help' element={<Help />} />
         </Route>
       </Routes>
     </BrowserRouter>

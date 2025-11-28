@@ -31,7 +31,7 @@ export interface Elder {
 export interface Task {
   id: number;
   elder_id: number;
-  task_name: string;
+  task: string;
   task_category_id: number;
   instructions?: string;
   rrule?: string;

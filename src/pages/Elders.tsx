@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { fetchElders, addElder, updateElder, deleteElder } from '../services/elders';
+
 import type { Elder } from '../types';
 import {
   Box,
@@ -35,8 +37,12 @@ export default function Elders() {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    timezone: 'America/New_York'
+    timezone: 'America/New_York',
+    active: true,
+    deleted: false,
   });
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadElders();
@@ -72,7 +78,9 @@ export default function Elders() {
     setFormData({
       name: elder.name,
       phone: elder.phone,
-      timezone: elder.timezone
+      timezone: elder.timezone,
+      active: elder.active,
+      deleted: elder.deleted,
     });
     setEditing(elder.id);
     setShowDialog(true);
@@ -93,7 +101,9 @@ export default function Elders() {
     setFormData({
       name: '',
       phone: '',
-      timezone: 'America/New_York'
+      timezone: 'America/New_York',
+      active: true,
+      deleted: false,
     });
     setEditing(null);
     setShowDialog(false);

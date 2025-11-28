@@ -28,6 +28,7 @@ import {
   Tooltip,
 } from '@mui/material';
 import { Add, Edit, Delete, ArrowBack, Home } from '@mui/icons-material';
+import RRuleBuilder from '../components/RRuleGenerator';
 
 export default function Tasks() {
   const { elderId } = useParams<{ elderId: string }>();
@@ -39,13 +40,16 @@ export default function Tasks() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<number | null>(null);
   const [showDialog, setShowDialog] = useState(false);
-  
+  const currentUserId = 1;
+
   const [formData, setFormData] = useState({
-    task_name: '',
+    task: '',
     task_category_id: 1,
     instructions: '',
     rrule: '',
+    updated_by: currentUserId
   });
+
 
   useEffect(() => {
     if (elderId) {
@@ -74,8 +78,8 @@ export default function Tasks() {
           ...formData,
           elder_id: Number(elderId),
           active: true,
-          created_by: 1,
-          updated_by: 1,
+          created_by: currentUserId,
+          updated_by: currentUserId
         });
       }
       await loadTasks();
@@ -87,10 +91,11 @@ export default function Tasks() {
 
   const handleEdit = (task: Task) => {
     setFormData({
-      task_name: task.task_name,
+      task: task.task,
       task_category_id: task.task_category_id,
       instructions: task.instructions || '',
       rrule: task.rrule || '',
+      updated_by: currentUserId
     });
     setEditing(task.id);
     setShowDialog(true);
@@ -109,10 +114,11 @@ export default function Tasks() {
 
   const handleCloseDialog = () => {
     setFormData({
-      task_name: '',
+      task: '',
       task_category_id: 1,
       instructions: '',
       rrule: '',
+      updated_by: currentUserId
     });
     setEditing(null);
     setShowDialog(false);
@@ -190,7 +196,7 @@ export default function Tasks() {
             ) : (
               tasks.map((task) => (
                 <TableRow key={task.id}>
-                  <TableCell>{task.task_name}</TableCell>
+                  <TableCell>{task.task}</TableCell>
                   <TableCell>Category {task.task_category_id}</TableCell>
                   <TableCell>{task.instructions || '-'}</TableCell>
                   <TableCell>
@@ -228,10 +234,11 @@ export default function Tasks() {
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
               fullWidth
-              label="Task Name"
+              label="Task"
               required
-              value={formData.task_name}
-              onChange={(e) => setFormData({ ...formData, task_name: e.target.value })}
+              helperText="This will display on the Elder's device"
+              value={formData.task}
+              onChange={(e) => setFormData({ ...formData, task: e.target.value })}
             />
             <TextField
               fullWidth
@@ -250,20 +257,15 @@ export default function Tasks() {
             <TextField
               fullWidth
               label="Instructions"
+              helperText="This will provide additional details for the task if needed"
               multiline
-              rows={3}
+              rows={6}
               value={formData.instructions}
               onChange={(e) => setFormData({ ...formData, instructions: e.target.value })}
               placeholder="Additional details or instructions for this task..."
             />
-            <TextField
-              fullWidth
-              label="RRULE Schedule"
-              value={formData.rrule}
-              onChange={(e) => setFormData({ ...formData, rrule: e.target.value })}
-              placeholder="e.g., FREQ=DAILY;BYHOUR=9;BYMINUTE=0"
-              helperText="Enter recurring rule for scheduling (RRULE format)"
-            />
+            <RRuleBuilder onChange={(value) => setFormData({ ...formData, rrule: value })} />
+            
           </Stack>
         </DialogContent>
         <DialogActions>
